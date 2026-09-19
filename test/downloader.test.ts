@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { Readable } from 'node:stream'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
@@ -97,13 +97,14 @@ describe('streaming release download', () => {
 
 describe('download directory containment', () => {
   it('accepts a child directory and rejects traversal or absolute paths', () => {
+    const baseDir = resolve(tmpdir(), 'koishi')
     expect(resolveOwnedDownloadDirectory(
-      'C:\\koishi',
+      baseDir,
       'data/github-release-group-file',
     )).toMatch(/github-release-group-file$/u)
-    expect(() => resolveOwnedDownloadDirectory('C:\\koishi', '..\\outside'))
+    expect(() => resolveOwnedDownloadDirectory(baseDir, join('..', 'outside')))
       .toThrow('严格位于')
-    expect(() => resolveOwnedDownloadDirectory('C:\\koishi', 'C:\\outside'))
+    expect(() => resolveOwnedDownloadDirectory(baseDir, resolve(tmpdir(), 'outside')))
       .toThrow('相对于')
   })
 })
